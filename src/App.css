@@ -1,0 +1,22 @@
+option {
+	background: #fff;
+	border-color: #41c9ff;
+	border-radius: 2px;
+	line-height: 18px;
+	outline: none;
+	-webkit-box-shadow: 0 0 3px 1px #c00;
+	-moz-box-shadow: 0 0 3px 1px #c00;
+	box-shadow: 0 0 3px 1px #c00;
+}
+.App {
+	width: 100vw;
+	height: 100vh;
+	background-color: #f9fafb;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+body {
+	background-color: #f9fafb;
+}
