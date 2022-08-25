@@ -7,8 +7,8 @@ export async function getData(query, filter, page) {
 			method: "GET",
 		}
 	);
-	let array = datos.json();
-
+	let array = await datos.json();
+	console.log("SOY ARRAY", array);
 	return array;
 }
 

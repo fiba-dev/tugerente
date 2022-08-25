@@ -172,3 +172,8 @@ select option {
 	width: 100px;
 	cursor: pointer;
 }
+.loader {
+	position: fixed;
+	bottom: 50px;
+	left: 50vw;
+}

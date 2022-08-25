@@ -1,5 +1,6 @@
 import "./App.css";
 import { Dropdowns } from "./components/combobox";
+import React from "react";
 
 function App() {
 	return (

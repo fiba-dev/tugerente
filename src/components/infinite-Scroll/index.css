@@ -1,0 +1,10 @@
+.scrollInfinite {
+	margin-top: 50px;
+	width: 50vw;
+
+	display: grid;
+
+	gap: 20px;
+	padding-bottom: 200px;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}

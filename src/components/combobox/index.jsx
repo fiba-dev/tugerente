@@ -4,7 +4,13 @@ import { getData, addData } from "../../lib/Api";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import InfiniteScroll from "react-infinite-scroll-component";
+import ReactLoading from "react-loading";
 import swal from "sweetalert";
+let page = 1;
+let resultados = [];
+let totalPages = 10;
+let queryState = "";
+let cargando = false;
 export function Dropdowns() {
 	let filter = [
 		{ value: "nombre", filter: "Nombre" },
@@ -14,9 +20,9 @@ export function Dropdowns() {
 		{ value: "codigo", filter: "Codigo" },
 	];
 
-	let [isLoading, setIsLoading] = useState(false);
+	let [isLoading, setIsLoading] = useState();
 	let [useFilter = filter[0].value, setFilter] = useState();
-	let [results, setResults] = useState();
+	let [useResults, setUseResults] = useState();
 	let [useObject, setObject] = useState({
 		nombre: "",
 		razonSocial: "",
@@ -24,11 +30,13 @@ export function Dropdowns() {
 		telefono: "",
 		codigo: "",
 	});
-	let [useQuery, setQuery] = useState("");
+	let [useQuery, setQuery] = useState();
 	let [usepopUp, setPopUp] = useState(false);
 	let [useButton, setUseButton] = useState(false);
-	let [usePage, setUsePage] = useState(1);
+
 	const { register, handleSubmit } = useForm();
+
+	let count = 0;
 	const variants = {
 		open: (height = 1000) => ({
 			clipPath: `circle(${height * 2 + 200}px at 40px  40px)`,
@@ -50,33 +58,78 @@ export function Dropdowns() {
 		},
 	};
 
-	const onSubmit = (data) => {
-		setResults([]);
-		setUsePage(1);
-		setQuery(data.q);
-	};
-
-	useEffect(() => {
+	async function onSubmit(data) {
 		setIsLoading(true);
-
-		getData(useQuery, useFilter, usePage).then((res) => {
-			if (results?.length === 0 || results === undefined) {
-				console.log("PRIMER IF");
-				setUseButton(true);
-				setResults(res.results);
-				return true;
-			}
-			if (res.total_pages >= usePage) {
-				setResults((results) => results.concat(res.results));
-			}
-
-			setIsLoading(false);
-		});
-	}, [usePage, useQuery, useFilter]);
+		setUseButton(true);
+		page = 1;
+		queryState = data.q;
+		let datos = await getData(data.q, useFilter, page);
+		resultados = datos.results;
+		totalPages = datos.total_pages;
+		page = page + 1;
+		setUseResults(resultados);
+		setIsLoading(false);
+		return true;
+	}
 
 	function openPopUp() {
 		setObject({ [useFilter]: useQuery });
 	}
+
+	async function loadMoreObjects() {
+		if (page <= totalPages) {
+			let datos = await getData(queryState, useFilter, page).then((res) => {
+				console.log("SOY RESULTS", resultados, useResults);
+
+				let newDatos = res;
+				if (resultados) {
+					setUseButton(true);
+					resultados = resultados.concat(...newDatos.results);
+					return resultados;
+				}
+
+				if (resultados.length === 0) {
+					resultados = resultados.concat(res.results);
+					return resultados;
+				}
+			});
+			console.log("SOY DATOS", datos);
+			setUseResults(datos);
+			page = page + 1;
+		}
+		setIsLoading(false);
+	}
+	useEffect(() => {
+		window.addEventListener("scroll", handleScroll);
+	}, []);
+	const handleScroll = (e) => {
+		setIsLoading(true);
+		// console.log("SOY WINDOWSinnerhig", window.innerHeight);
+		// console.log(
+		// 	"SOY WINDOWSinnerhig scrolltop",
+		// 	e.target.documentElement.scrollTop
+		// );
+		// console.log(
+		// 	"SOY WINDOWSinnerhig scrolltop masuno",
+		// 	e.target.documentElement.scrollTop + 1
+		// );
+		// console.log(
+		// 	"soy la sunma ",
+		// 	window.innerHeight + e.target.documentElement.scrollTop + 1
+		// );
+		// console.log(
+		// 	"Soy docelementscrollheight",
+		// 	e.target.documentElement.scrollHeight
+		// );
+		if (
+			window.innerHeight + e.target.documentElement.scrollTop >=
+			e.target.documentElement.scrollHeight
+		) {
+			console.log("Entre al if", cargando);
+			loadMoreObjects();
+		}
+		return true;
+	};
 	async function addObject(params) {
 		params.preventDefault();
 
@@ -194,13 +247,7 @@ export function Dropdowns() {
 				</div>
 			</div>
 
-			<InfiniteScroll
-				dataLength={71}
-				hasMore={true}
-				loader={isLoading === true ? "Cargando" : "FIN"}
-				className={"resultsContenedor"}
-				next={() => setUsePage((prevPage) => prevPage + 1)}
-			>
+			<div className={"resultsContenedor"}>
 				{useButton && (
 					<button
 						className={"buttonAdd"}
@@ -212,7 +259,7 @@ export function Dropdowns() {
 						Add
 					</button>
 				)}
-				{results?.map((i) => (
+				{useResults?.map((i) => (
 					<div key={i.nit} className={"resultsInfo"}>
 						{" "}
 						<p>
@@ -234,7 +281,15 @@ export function Dropdowns() {
 						</p>
 					</div>
 				))}
-			</InfiniteScroll>
+			</div>
+			{useResults && isLoading && (
+				<ReactLoading
+					type={"bubbles"}
+					color={"red"}
+					height={"8%"}
+					width={"8%"}
+				/>
+			)}
 		</div>
 	);
 }
